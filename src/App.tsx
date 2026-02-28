@@ -53,8 +53,17 @@ function App() {
     fetchMovimientos();
   };
 
+  const handleDelete = async (id: number) => {
+    await fetch(`http://localhost:3000/movimientos/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchMovimientos();
+  };
+
   if (loading) return <p>Cargando...</p>;
   if (error) return <p>{error}</p>;
+
 
   return (
     <div style={{ padding: 20 }}>
@@ -96,6 +105,12 @@ function App() {
         {movimientos.map((mov: any) => (
           <li key={mov.id}>
             {mov.tipo} — ${mov.monto}
+            <button
+              style={{ marginLeft: 10 }}
+              onClick={() => handleDelete(mov.id)}
+            >
+              Eliminar
+            </button>
           </li>
         ))}
       </ul>
