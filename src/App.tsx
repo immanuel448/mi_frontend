@@ -13,6 +13,44 @@ function App() {
     fecha_movimiento: "",
   });
 
+  const [editId, setEditId] = useState<number | null>(null);
+
+  const handleEdit = (mov: any) => {
+    setEditId(mov.id);
+    setForm({
+      tipo: mov.tipo,
+      monto: mov.monto,
+      fuente: mov.fuente,
+      fecha_movimiento: mov.fecha_movimiento?.split("T")[0],
+    });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    const url = editId
+      ? `http://localhost:3000/movimientos/${editId}`
+      : `http://localhost:3000/movimientos`;
+
+    const method = editId ? "PUT" : "POST";
+
+    await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    setForm({
+      tipo: "ingreso",
+      monto: "",
+      fuente: "",
+      fecha_movimiento: "",
+    });
+
+    setEditId(null);
+    fetchMovimientos();
+  };
+
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -31,27 +69,6 @@ function App() {
   useEffect(() => {
     fetchMovimientos();
   }, []);
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
-    await fetch("http://localhost:3000/movimientos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
-
-    setForm({
-      tipo: "ingreso",
-      monto: "",
-      fuente: "",
-      fecha_movimiento: "",
-    });
-
-    fetchMovimientos();
-  };
 
   const handleDelete = async (id: number) => {
     await fetch(`http://localhost:3000/movimientos/${id}`, {
@@ -96,7 +113,9 @@ function App() {
           value={form.fecha_movimiento}
           onChange={handleChange}
         />
-        <button type="submit">Agregar</button>
+        <button type="submit">
+          {editId ? "Actualizar" : "Agregar"}
+        </button>
       </form>
 
       {movimientos.length === 0 && <p>No hay datos</p>}
@@ -105,6 +124,12 @@ function App() {
         {movimientos.map((mov: any) => (
           <li key={mov.id}>
             {mov.tipo} — ${mov.monto}
+            <button
+              style={{ marginLeft: 10 }}
+              onClick={() => handleEdit(mov)}
+            >
+              Editar
+            </button>
             <button
               style={{ marginLeft: 10 }}
               onClick={() => handleDelete(mov.id)}
